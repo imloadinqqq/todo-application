@@ -1,0 +1,36 @@
+app ToDoApp {
+  wasp: {
+    version: "^0.14.0"
+  },
+  title: "ToDo-App"
+}
+
+route RootRoute { path: "/", to: MainPage }
+page MainPage {
+    component: import { MainPage } from "@src/MainPage"
+}
+
+query getTasks {
+    fn: import { getTasks } from "@src/queries",
+    entities: [Task]
+}
+
+action createTask {
+    fn: import { createTask } from "@src/actions",
+    entities: [Task]
+}
+
+action updateTask {
+    fn: import { updateTask } from "@src/actions",
+    entities: [Task]
+}
+
+action deleteTask {
+    fn: import { deleteTask } from "@src/actions",
+    entities: [Task]
+}
+
+action createTaskList {
+    fn: import { createTaskList } from "@src/actions",
+    entities: [List]
+}
