@@ -1,31 +1,56 @@
 import { createTaskList, deleteTask, updateTask, createTask, getTasks, useQuery } from 'wasp/client/operations'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 export const MainPage = () => {
   const { data: tasks, isLoading, error } = useQuery(getTasks)
+  const [lists, setLists] = useState([])
+
+  // Fetch task lists when component mounts
+  useEffect(() => {
+    const fetchLists = async () => {
+      try {
+        const response = await fetch('/api/lists') // Adjust this endpoint based on your API
+        const listsData = await response.json()
+        setLists(listsData)
+      } catch (err) {
+        console.error('Error fetching lists:', err)
+      }
+    }
+
+    fetchLists()
+  }, [])
 
   return (
     <div className='form'>
-      <NewTaskForm />
-      {tasks && <TasksList tasks={tasks} />}
-
-      {isLoading && 'Loading...'}
-      {error && 'Error: ' + error}
+      {isLoading && <div>Loading...</div>}
+      {error && <div>Error: {error.message}</div>}
+      {!isLoading && !error && (
+        <>
+          <NewTaskForm lists={lists} />
+          <NewListTaskForm />
+          {tasks && <TasksList tasks={tasks} />}
+        </>
+      )}
     </div>
   ) 
 }
 
 const NewListTaskForm = () => {
-  const [taskListName, setTaskListName] = useState('');
+  const [taskListName, setTaskListName] = useState('')
 
   const handleNameChange = (event) => {
-    setTaskListName(event.target.value);
+    setTaskListName(event.target.value)
   }
 
   const handleSubmit = async (event) => {
-    event.preventDefault();
-    // Handle submit logic...
-  };
+    event.preventDefault()
+    try {
+      await createTaskList({ name: taskListName })
+      setTaskListName('')
+    } catch (err) {
+      window.alert('Error: ' + err.message)
+    }
+  }
 
   return (
     <form onSubmit={handleSubmit}>
@@ -38,7 +63,7 @@ const NewListTaskForm = () => {
       />
       <input type="submit" value="Create task list" />
     </form>
-  );
+  )
 }
 
 const TaskView = ({ task }) => {
@@ -52,19 +77,6 @@ const TaskView = ({ task }) => {
       window.alert('Error while updating task: ' + error.message)
     }
   }
-
-  const handleSubmit = async (event) => {
-  event.preventDefault();
-  try {
-    const taskListName = event.target.taskListName.value;
-    // Reset form
-    event.target.reset();
-    // Create task list with the name
-    await createTaskList({ name: taskListName });
-  } catch (err) {
-    window.alert('Error: ' + err.message);
-  }
-}
 
   const handleDelete = async () => {
     try {
@@ -100,14 +112,24 @@ const TasksList = ({ tasks }) => {
   )
 }
 
-const NewTaskForm = () => {
+const NewTaskForm = ({ lists }) => {
+  const [description, setDescription] = useState('')
+  const [selectedList, setSelectedList] = useState('')
+
+  const handleDescriptionChange = (event) => {
+    setDescription(event.target.value)
+  }
+
+  const handleListChange = (event) => {
+    setSelectedList(event.target.value)
+  }
+
   const handleSubmit = async (event) => {
     event.preventDefault()
     try {
-      const target = event.target
-      const description = target.description.value
-      target.reset()
-      await createTask({ description })
+      await createTask({ description, listId: selectedList })
+      setDescription('')
+      setSelectedList('')
     } catch (err) {
       window.alert('Error: ' + err.message)
     }
@@ -115,7 +137,21 @@ const NewTaskForm = () => {
 
   return (
     <form onSubmit={handleSubmit}>
-      <input name="description" type="text" defaultValue="" />
+      <input
+        name="description"
+        type="text"
+        value={description}
+        onChange={handleDescriptionChange}
+        placeholder="Enter task description"
+      />
+      <select name="list" value={selectedList} onChange={handleListChange}>
+        <option value="">Select a list</option>
+        {lists.map((list) => (
+          <option key={list.id} value={list.id}>
+            {list.description}
+          </option>
+        ))}
+      </select>
       <input type="submit" value="Create task" />
     </form>
   )

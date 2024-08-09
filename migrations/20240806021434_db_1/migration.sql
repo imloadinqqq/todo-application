@@ -1,6 +1,13 @@
--- CreateTable
+CREATE TABLE "List" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "description" TEXT NOT NULL
+);
+
 CREATE TABLE "Task" (
     "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     "description" TEXT NOT NULL,
-    "isDone" BOOLEAN NOT NULL DEFAULT false
+    "isDone" BOOLEAN NOT NULL DEFAULT false,
+    "listId" INTEGER,
+    FOREIGN KEY ("listId") REFERENCES "List" ("id")
 );
+

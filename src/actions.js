@@ -25,4 +25,12 @@ export const deleteTask = async (id, context) => {
 }
 
 
-//export const createTaskList =
+export const createTaskList = async (args, context) => {
+  if (!args.name || args.name.trim() === "") {
+    throw new Error("Name is required");
+  }
+
+  return context.entities.TaskList.create({
+    data: { name: args.name },
+  });
+}

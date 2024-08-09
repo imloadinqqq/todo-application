@@ -10,7 +10,15 @@ generator client {
 }
 
 model Task {
-    id          Int     @id @default(autoincrement())
-    description String
-    isDone      Boolean @default(false)
+  id          Int     @id @default(autoincrement())
+  description String
+  isDone      Boolean @default(false)
+  listId      Int?
+  list        List?   @relation(fields: [listId], references: [id])
+}
+
+model List {
+  id          Int     @id @default(autoincrement())
+  description String
+  tasks       Task[]  @relation("ListTasks")
 }
